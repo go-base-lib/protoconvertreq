@@ -1,0 +1,58 @@
+process:
+  - http:
+      desc: 测试获取随机数
+      url: 127.0.0.1:8183/getRandom
+      method: post
+      headers:
+        Content-Type: application/json
+      argsCheck: |
+        if (!$.Out) {
+          throw "外部属性不存在, 无法满足测试要求"
+        }
+
+        if (!$.Out.b) {
+          throw "b属性不存在"
+        }
+      reqBody: |
+        {
+          "randomA": "{{ randHex 36 }}"
+        }
+      responseParser:
+        simple: json
+        errFn: |
+          const res = {
+            "error": true,
+            "msg": "未知的异常, 状态码 => " + $Res.StatusCode
+          }
+          res
+        fns:
+          - |
+            if ($.Res.Obj.error) {
+              throw $.Res.Obj.msg
+            }
+            $.Res.Obj.result
+  - http:
+      desc: 测试正式业务
+      url: 127.0.0.1:8183/end
+      method: post
+      headers:
+        Content-Type: application/json
+      reqBody: |
+        {{ $reqData := decodeJson (index .Http.List 0).Req.Data }}
+        {
+          "random": "{{ $reqData.randomA }}{{ .Http.Prev.Res.Obj }}"
+        }
+      responseParser:
+        simple: json
+        errFn: |
+          const res = {
+            "error": true,
+            "msg": "未知的异常, 状态码 => " + $.Res.StatusCode
+          }
+          res
+        fns:
+          - |
+            if ($.Res.Obj.error) {
+              throw $.Res.Obj.msg
+            }
+            $.Res.Obj.result

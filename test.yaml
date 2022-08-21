@@ -1,0 +1,47 @@
+process:
+  - http:
+      desc: 获取随机数
+      url: 192.168.0.120:6060/sealCertService/dzyz_r/apply
+      method: POST
+      headers:
+        Content-Type: application/json
+      reqBody: |
+        {
+          "taskCode":"applyServiceRandom",
+          "version":"1.0",
+          "applicantCert":"{{ ._.ApplicantCert }}",
+          "randomA":"{{ randHex 16 }}"
+        }
+      responseParser:
+        simple: json
+        fns:
+          - |
+            if (_res.obj.resultCode.toString() !== "0") {
+                throw _res.obj.resultCodeMsg
+            }
+            _res.obj.randomB
+  - http:
+      desc: 申请证书
+      url:
+#  - https:
+#      desc: 描述
+#      url: coder.byzk.cn
+#      caCertPem: ""
+#      clientCertPm: ""
+#      clientKeyPem: ""
+#      skipVerify: false
+#      method: POST
+#      reqBody: |
+#        {"a": "haha"}
+#      headers:
+#        Content-Type: application/json
+#      responseParser:
+#        simple: base64 | json
+#        fns:
+#          - _res.result
+#        errFns:
+#          - |
+
+
+
+
